@@ -1,4 +1,4 @@
-export interface PostsData {
+export interface IPostsData {
   index: number;
   id: number | null;
   userId: number;
@@ -7,7 +7,7 @@ export interface PostsData {
   post: string[];
 }
 
-export interface ItemData {
+export interface IItemData {
   title: string;
   body: string;
 }
