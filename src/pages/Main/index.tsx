@@ -1,8 +1,10 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import Item from "../../components/PostItem";
+import { PostsData } from "../../types";
 
 const Main = () => {
-  const [posts, setPosts] = useState("");
+  const [posts, setPosts] = useState<PostsData[]>([]);
   const [error, setError] = useState("");
 
   const fetchPosts = async () => {
@@ -13,11 +15,11 @@ const Main = () => {
 
       setPosts(data);
     } catch (error) {
-      let errorMessage = "Failed to do something exceptional";
+      let errorMessage = "Failed to do GET request";
       if (error instanceof Error) {
         errorMessage = error.message;
       }
-      console.log(errorMessage);
+      setError(errorMessage);
     }
   };
 
@@ -33,6 +35,20 @@ const Main = () => {
       <header className="header-box">
         <h1 className="header-box__title">Главная страница</h1>
       </header>
+      <section className="posts">
+        <div className="posts-box">
+          <h1 className="posts-box__title">
+            <div className="posts-box__items">
+              {posts?.map((post, index) => (
+                <Item key={index} title={post.title} body={post.body} />
+              ))}
+            </div>
+          </h1>
+        </div>
+        <div className="error-box">
+          <p className="error">{error}</p>
+        </div>
+      </section>
     </div>
   );
 };
