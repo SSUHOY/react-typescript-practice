@@ -1,7 +1,13 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Item from "../../components/PostItem";
 import { PostsData } from "../../types";
+import {
+  Container,
+  Header,
+  HeaderTitle,
+  PostsItems,
+} from "../../styles/MainPage/Main.styles";
 
 const Main = () => {
   const [posts, setPosts] = useState<PostsData[]>([]);
@@ -31,25 +37,21 @@ const Main = () => {
   }, []);
 
   return (
-    <div className="container">
-      <header className="header-box">
-        <h1 className="header-box__title">Главная страница</h1>
-      </header>
+    <Container>
+      <Header>
+        <HeaderTitle>Ваши публикации</HeaderTitle>
+      </Header>
       <section className="posts">
-        <div className="posts-box">
-          <h1 className="posts-box__title">
-            <div className="posts-box__items">
-              {posts?.map((post, index) => (
-                <Item key={index} title={post.title} body={post.body} />
-              ))}
-            </div>
-          </h1>
-        </div>
+        <PostsItems>
+          {posts?.map((post, index) => (
+            <Item key={index} title={post.title} body={post.body} />
+          ))}
+        </PostsItems>
         <div className="error-box">
           <p className="error">{error}</p>
         </div>
       </section>
-    </div>
+    </Container>
   );
 };
 
