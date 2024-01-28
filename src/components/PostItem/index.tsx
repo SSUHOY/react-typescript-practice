@@ -4,9 +4,9 @@ import {
   ItemTitle,
   ItemTitleBox,
 } from "../../styles/PostItem/Item.styles";
-import { ItemData } from "../../types";
+import { IItemData } from "../../types";
 
-const Item = ({ title, body }: ItemData) => {
+const Item = ({ title, body }: IItemData) => {
   return (
     <>
       <ItemBox>

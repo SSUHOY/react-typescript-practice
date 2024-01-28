@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import Item from "../../components/PostItem";
-import { PostsData } from "../../types";
+import { IPostsData } from "../../types";
 import {
   Container,
   Header,
@@ -10,7 +10,7 @@ import {
 } from "../../styles/MainPage/Main.styles";
 
 const Main = () => {
-  const [posts, setPosts] = useState<PostsData[]>([]);
+  const [posts, setPosts] = useState<IPostsData[]>([]);
   const [error, setError] = useState("");
 
   const fetchPosts = async () => {
