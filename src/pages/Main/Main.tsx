@@ -1,8 +1,13 @@
+import { useEffect, useRef } from "react";
 import { Logo } from "../../components/shared/Logo";
 import * as S from "../../styles/MainPage/Main.styles";
 
 const Main = () => {
-  console.log("test");
+  const boardRef = useRef(null);
+  useEffect(() => {
+    const element = boardRef.current;
+    console.log(element);
+  }, []);
 
   return (
     <>
@@ -14,7 +19,8 @@ const Main = () => {
         <S.GameBorderExternal>
           <S.GameBorderInternal>
             <S.GameBorderInsideInternal>
-              <S.GameBoard id="game-board"></S.GameBoard>
+              <S.GameBoard ref={boardRef} id="game-board">
+              </S.GameBoard>
             </S.GameBorderInsideInternal>
           </S.GameBorderInternal>
         </S.GameBorderExternal>
