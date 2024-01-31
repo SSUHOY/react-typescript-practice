@@ -8,6 +8,7 @@ body {
   height: 100vh;
   margin: 0;
   font-family: 'VT323', monospace;
+  overflow: hidden;
 }
 body, .snake{
   background-color: #414141

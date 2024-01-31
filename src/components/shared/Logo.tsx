@@ -1,4 +1,4 @@
-import { SnakeLogo } from "../../styles/MainPage/Main.styles";
+import { SnakeLogo } from "../../styles/mainPage/Main.styles";
 
 export const Logo = () => {
   return (
