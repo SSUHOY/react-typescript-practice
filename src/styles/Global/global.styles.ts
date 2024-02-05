@@ -14,4 +14,9 @@ body, .snake{
   background-color: #414141
 }
 
+.food{
+  background-color: white;
+  border: 4px solid gray;
+}
+
 `;

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { Logo } from "../../components/shared/Logo";
 import * as S from "../../styles/mainPage/Main.styles";
 import { ISnake } from "../../interfaces";
@@ -6,22 +6,34 @@ import { ISnake } from "../../interfaces";
 const Main = () => {
   const [start, setStart] = useState(false);
 
-  const boardRef = useRef<HTMLDivElement>(null);
-  const gridSize = 20;
-
   // Define game variables
-  let snake: ISnake[] = [{ x: 10, y: 12 }];
-  // ИСПРАВИТЬ!
+  const boardRef = useRef() as React.MutableRefObject<HTMLInputElement>;
+  const gridSize = 20;
+  const [snakePos, setSnakePos] = useState([{ x: 10, y: 10 }]);
   let food: ISnake = generateFood();
+  let direction = "right";
+
+  // useEffect(() => {
+  //   if (boardRef.current) {
+  //     // Now you can use boardRef.current to access the DOM element
+  //     drawSnake();
+  //   }
+  // }, []);
+
+  // Draw game map, snake, food
+  function draw() {
+    setStart(true);
+    boardRef!.current.innerHTML = "";
+    drawSnake();
+    drawFood();
+  }
 
   function drawSnake() {
-    snake.forEach((segment) => {
+    console.log(snakePos);
+    snakePos.forEach((segment) => {
       const snakeElement = createGameElement("div", "snake");
       setPosition(snakeElement, segment);
-      if (boardRef.current) {
-        boardRef.current.appendChild(snakeElement);
-        setStart(true);
-      }
+      boardRef?.current.appendChild(snakeElement);
     });
   }
 
@@ -29,21 +41,12 @@ const Main = () => {
   function drawFood() {
     const foodElement = createGameElement("div", "food");
     setPosition(foodElement, food);
-    if (boardRef.current) {
-      boardRef.current.appendChild(foodElement);
-      generateFood();
-    }
+    boardRef?.current.appendChild(foodElement);
   }
   function generateFood(): ISnake {
-    const x = Math.floor(Math.random() * gridSize);
-    const y = Math.floor(Math.random() * gridSize);
+    const x = Math.floor(Math.random() * gridSize) + 1;
+    const y = Math.floor(Math.random() * gridSize) + 1;
     return { x, y };
-  }
-  // Create a snake or food cube/div
-  function createGameElement(tag: string, className: string) {
-    const element = document.createElement(tag);
-    element.className = className;
-    return element;
   }
 
   // Set the position of snake, of food
@@ -51,6 +54,44 @@ const Main = () => {
     element.style.gridColumn = position.x.toString();
     element.style.gridRow = position.y.toString();
   }
+
+  // Create a snake or food cube/div
+  function createGameElement(tag: string, className: string) {
+    const element = document.createElement(tag);
+    element.className = className;
+    return element;
+  }
+
+  // Moving the snake
+  function move() {
+    let newSnakePos = [...snakePos];
+    let head = { ...newSnakePos[0] };
+    switch (direction) {
+      case "up":
+        head.y++;
+        break;
+      case "down":
+        head.y--;
+        break;
+      case "left":
+        head.x--;
+        break;
+      case "right":
+        head.x++;
+        break;
+    }
+    newSnakePos.unshift(head);
+    newSnakePos.pop();
+    setSnakePos(newSnakePos);
+    draw();
+  }
+
+  // Test moving
+  // setInterval(() => {
+  //   setStart(true);
+  //   move();
+  //   draw();
+  // }, 2000);
 
   // const handleSpaceBar = (e: KeyboardEvent<HTMLInputElement>) => {
   //   const { key } = e;
@@ -63,7 +104,9 @@ const Main = () => {
     <>
       <S.Container>
         <S.Scores>
-          <S.Score id="scores">000</S.Score>
+          <S.Score id="scores" onClick={move}>
+            000
+          </S.Score>
           <S.HighScore id="highScores">000</S.HighScore>
         </S.Scores>
         <S.GameBorderExternal>
@@ -77,7 +120,7 @@ const Main = () => {
       {!start && (
         <S.GameStartInstruction>
           <Logo />
-          <S.Instruction onClick={drawSnake}>
+          <S.Instruction onClick={draw}>
             Press spacebar to start the game
           </S.Instruction>
         </S.GameStartInstruction>
