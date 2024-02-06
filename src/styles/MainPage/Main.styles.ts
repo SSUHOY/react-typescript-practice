@@ -33,6 +33,10 @@ export const GameBoard = styled.div`
   background-color: #b5bf93;
 `;
 
+export const GameStartInstruction = styled.div`
+  position: absolute;
+`;
+
 export const Instruction = styled.div`
   position: relative;
   color: #333;
