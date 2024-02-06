@@ -1,7 +1,8 @@
-import { MutableRefObject, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Logo } from "../../components/shared/Logo";
 import * as S from "../../styles/mainPage/Main.styles";
 import { ISnake } from "../../interfaces";
+import StartScreen from "../../components/startScreen/StartScreen";
 
 const Main = () => {
   const [start, setStart] = useState(false);
@@ -9,27 +10,24 @@ const Main = () => {
   // Define game variables
   const boardRef = useRef() as React.MutableRefObject<HTMLInputElement>;
   const gridSize = 20;
-  const [snakePos, setSnakePos] = useState([{ x: 10, y: 10 }]);
-  let food: ISnake = generateFood();
   let direction = "right";
+  let gameInterval: ReturnType<typeof setInterval> | undefined;
+  let gameSpeedDelay = 200;
 
-  // useEffect(() => {
-  //   if (boardRef.current) {
-  //     // Now you can use boardRef.current to access the DOM element
-  //     drawSnake();
-  //   }
-  // }, []);
+  // Snake and food position state
+  const [snakePos, setSnakePos] = useState([{ x: 10, y: 10 }]);
+  const [food, setFood] = useState(generateFood());
 
   // Draw game map, snake, food
   function draw() {
-    setStart(true);
-    boardRef!.current.innerHTML = "";
+    if (boardRef.current) {
+      boardRef!.current.innerHTML = "";
+    }
     drawSnake();
     drawFood();
   }
-
+  // Draw Snake
   function drawSnake() {
-    console.log(snakePos);
     snakePos.forEach((segment) => {
       const snakeElement = createGameElement("div", "snake");
       setPosition(snakeElement, segment);
@@ -41,7 +39,9 @@ const Main = () => {
   function drawFood() {
     const foodElement = createGameElement("div", "food");
     setPosition(foodElement, food);
-    boardRef?.current.appendChild(foodElement);
+    if (boardRef.current) {
+      boardRef?.current.appendChild(foodElement);
+    }
   }
   function generateFood(): ISnake {
     const x = Math.floor(Math.random() * gridSize) + 1;
@@ -67,10 +67,10 @@ const Main = () => {
     let newSnakePos = [...snakePos];
     let head = { ...newSnakePos[0] };
     switch (direction) {
-      case "up":
+      case "down":
         head.y++;
         break;
-      case "down":
+      case "up":
         head.y--;
         break;
       case "left":
@@ -80,25 +80,49 @@ const Main = () => {
         head.x++;
         break;
     }
+
     newSnakePos.unshift(head);
-    newSnakePos.pop();
     setSnakePos(newSnakePos);
-    draw();
+
+    if (head.x === food.x && head.y === food.y) {
+      setFood(generateFood());
+      clearInterval(gameInterval);
+      gameInterval = setInterval(() => {
+        move();
+        // clearInterval();
+        draw();
+      }, gameSpeedDelay);
+    } else {
+      newSnakePos.pop();
+    }
   }
 
-  // Test moving
-  // setInterval(() => {
-  //   setStart(true);
-  //   move();
-  //   draw();
-  // }, 2000);
+  // Start game function
+  function startGame() {
+    setStart(true);
+    gameInterval = setInterval(() => {
+      move();
+      // clearInterval();
+      draw();
+      // checkCollision();
+    }, gameSpeedDelay);
+  }
 
-  // const handleSpaceBar = (e: KeyboardEvent<HTMLInputElement>) => {
-  //   const { key } = e;
-  //   if (key === 'Space') {
-  //     drawSnake();
-  //   }
-  // };
+  // Detect keydown function for start and handle snake moving direction
+  useEffect(() => {
+    window.addEventListener("keydown", detectKeyDown, true);
+  }, []);
+
+  const detectKeyDown = (event: KeyboardEvent) => {
+    if ((!start && event.key === " ") || (!start && event.code === "Space")) {
+      startGame();
+    }
+  };
+
+  // setInterval(() => {
+  //   draw();
+  //   move();
+  // }, 2000);
 
   return (
     <>
@@ -117,14 +141,7 @@ const Main = () => {
           </S.GameBorderInternal>
         </S.GameBorderExternal>
       </S.Container>
-      {!start && (
-        <S.GameStartInstruction>
-          <Logo />
-          <S.Instruction onClick={draw}>
-            Press spacebar to start the game
-          </S.Instruction>
-        </S.GameStartInstruction>
-      )}
+      {!start && <StartScreen />}
     </>
   );
 };
