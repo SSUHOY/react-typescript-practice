@@ -1,22 +1,39 @@
 import { useEffect, useRef, useState } from "react";
-import { Logo } from "../../components/shared/Logo";
 import * as S from "../../styles/mainPage/Main.styles";
 import { ISnake } from "../../interfaces";
 import StartScreen from "../../components/startScreen/StartScreen";
+import GameOverScreen from "../../components/gameOver/GameOverScreen";
 
 const Main = () => {
   const [start, setStart] = useState(false);
 
+  const [gameOver, setGameIsOver] = useState(false);
+  const [direction, setDirection] = useState("right");
+  const [gameSpeedDelay, setGameSpeedDelay] = useState(200);
+  const [gameScores, setGameScores] = useState(0);
+
   // Define game variables
+  let gameInterval = useRef<NodeJS.Timeout | undefined>(undefined);
   const boardRef = useRef() as React.MutableRefObject<HTMLInputElement>;
   const gridSize = 20;
-  let direction = "right";
-  let gameInterval: ReturnType<typeof setInterval> | undefined;
-  let gameSpeedDelay = 200;
 
   // Snake and food position state
   const [snakePos, setSnakePos] = useState([{ x: 10, y: 10 }]);
-  const [food, setFood] = useState(generateFood());
+  const [food, setFood] = useState(generateFood);
+
+  useEffect(() => {
+    if (start) {
+      gameInterval.current = setInterval(() => {
+        move(direction);
+        checkCollision();
+        draw();
+      }, gameSpeedDelay); // Interval time in milliseconds
+    }
+    if (!start) {
+      boardRef!.current.innerHTML = "";
+    }
+    return () => clearInterval(gameInterval.current); // Clear the interval on component unmount
+  }, [start, snakePos]);
 
   // Draw game map, snake, food
   function draw() {
@@ -63,7 +80,7 @@ const Main = () => {
   }
 
   // Moving the snake
-  function move() {
+  const move = (direction: string) => {
     let newSnakePos = [...snakePos];
     let head = { ...newSnakePos[0] };
     switch (direction) {
@@ -81,32 +98,18 @@ const Main = () => {
         break;
     }
 
-    newSnakePos.unshift(head);
     setSnakePos(newSnakePos);
+    newSnakePos.unshift(head);
 
     if (head.x === food.x && head.y === food.y) {
       setFood(generateFood());
-      clearInterval(gameInterval);
-      gameInterval = setInterval(() => {
-        move();
-        // clearInterval();
-        draw();
-      }, gameSpeedDelay);
+      increaseSpeed();
+      clearInterval(gameInterval.current);
+      setGameScores(gameScores + 1);
     } else {
       newSnakePos.pop();
     }
-  }
-
-  // Start game function
-  function startGame() {
-    setStart(true);
-    gameInterval = setInterval(() => {
-      move();
-      // clearInterval();
-      draw();
-      // checkCollision();
-    }, gameSpeedDelay);
-  }
+  };
 
   // Detect keydown function for start and handle snake moving direction
   useEffect(() => {
@@ -114,24 +117,84 @@ const Main = () => {
   }, []);
 
   const detectKeyDown = (event: KeyboardEvent) => {
+    if (
+      (gameOver && event.key === " ") ||
+      (gameOver && event.code === "Space")
+    ) {
+      restartGame();
+    }
     if ((!start && event.key === " ") || (!start && event.code === "Space")) {
-      startGame();
+      setStart(true);
+    } else {
+      switch (event.key) {
+        case "ArrowUp":
+          setDirection("up");
+          break;
+        case "ArrowDown":
+          setDirection("down");
+          break;
+        case "ArrowRight":
+          setDirection("right");
+          break;
+        case "ArrowLeft":
+          setDirection("left");
+      }
     }
   };
 
-  // setInterval(() => {
-  //   draw();
-  //   move();
-  // }, 2000);
+  const increaseSpeed = () => {
+    if (gameSpeedDelay > 150) {
+      setGameSpeedDelay(gameSpeedDelay - 5);
+    }
+    if (gameSpeedDelay > 100) {
+      setGameSpeedDelay(gameSpeedDelay - 3);
+    }
+    if (gameSpeedDelay > 50) {
+      setGameSpeedDelay(gameSpeedDelay - 2);
+    }
+    if (gameSpeedDelay > 25) {
+      setGameSpeedDelay(gameSpeedDelay - 1);
+    }
+  };
+
+  const checkCollision = () => {
+    const head = snakePos[0];
+
+    if (head.x < 1 || head.x > gridSize || head.y < 1 || head.y > gridSize) {
+      gameIsOver();
+    }
+    for (let i = 1; i < snakePos.length; i++) {
+      if (head.x === snakePos[i].x && head.y === snakePos[i].y) {
+        gameIsOver();
+      }
+    }
+  };
+
+  const gameIsOver = () => {
+    setGameIsOver(true);
+    setStart(false);
+    setSnakePos([{ x: 10, y: 10 }]);
+    setGameScores(0);
+  };
+
+  const restartGame = () => {
+    setFood(generateFood());
+    setStart(true);
+    setGameIsOver(false);
+    clearInterval(gameInterval.current);
+    setGameSpeedDelay(200);
+  };
 
   return (
     <>
       <S.Container>
         <S.Scores>
-          <S.Score id="scores" onClick={move}>
-            000
+          <S.Score id="scores">
+            {gameScores >= 10 || gameScores >= 100
+              ? "0" + gameScores
+              : "00" + gameScores}
           </S.Score>
-          <S.HighScore id="highScores">000</S.HighScore>
+          {/* <S.HighScore id="highScores">000</S.HighScore> */}
         </S.Scores>
         <S.GameBorderExternal>
           <S.GameBorderInternal>
@@ -141,7 +204,8 @@ const Main = () => {
           </S.GameBorderInternal>
         </S.GameBorderExternal>
       </S.Container>
-      {!start && <StartScreen />}
+      {!start && !gameOver && <StartScreen />}
+      {!start && gameOver && <GameOverScreen />}
     </>
   );
 };

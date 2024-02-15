@@ -7,7 +7,9 @@ export const Scores = styled.div`
   justify-content: space-between;
 `;
 
-export const Score = styled.h1``;
+export const Score = styled.h1`
+  color: #b5bf93;
+`;
 export const HighScore = styled.h1``;
 
 export const GameBorderExternal = styled.div`

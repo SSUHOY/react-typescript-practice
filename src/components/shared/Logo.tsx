@@ -8,3 +8,11 @@ export const Logo = () => {
     />
   );
 };
+export const GameOver = () => {
+  return (
+    <SnakeLogo
+      src={require("./../../assets/images/snake-game-gameover.png")}
+      alt="Game-over"
+    />
+  );
+};
