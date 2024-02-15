@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { Logo } from "../../components/shared/Logo";
 import * as S from "../../styles/mainPage/Main.styles";
 import { ISnake } from "../../interfaces";
 import StartScreen from "../../components/startScreen/StartScreen";
+import GameOverScreen from "../../components/gameOver/GameOverScreen";
 
 const Main = () => {
   const [start, setStart] = useState(false);
+
+  const [gameOver, setGameIsOver] = useState(false);
   const [direction, setDirection] = useState("right");
   const [gameSpeedDelay, setGameSpeedDelay] = useState(200);
+  const [gameScores, setGameScores] = useState(0);
 
   // Define game variables
   let gameInterval = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -22,8 +25,12 @@ const Main = () => {
     if (start) {
       gameInterval.current = setInterval(() => {
         move(direction);
+        checkCollision();
         draw();
       }, gameSpeedDelay); // Interval time in milliseconds
+    }
+    if (!start) {
+      boardRef!.current.innerHTML = "";
     }
     return () => clearInterval(gameInterval.current); // Clear the interval on component unmount
   }, [start, snakePos]);
@@ -98,6 +105,7 @@ const Main = () => {
       setFood(generateFood());
       increaseSpeed();
       clearInterval(gameInterval.current);
+      setGameScores(gameScores + 1);
     } else {
       newSnakePos.pop();
     }
@@ -109,6 +117,12 @@ const Main = () => {
   }, []);
 
   const detectKeyDown = (event: KeyboardEvent) => {
+    if (
+      (gameOver && event.key === " ") ||
+      (gameOver && event.code === "Space")
+    ) {
+      restartGame();
+    }
     if ((!start && event.key === " ") || (!start && event.code === "Space")) {
       setStart(true);
     } else {
@@ -147,15 +161,39 @@ const Main = () => {
     const head = snakePos[0];
 
     if (head.x < 1 || head.x > gridSize || head.y < 1 || head.y > gridSize) {
+      gameIsOver();
+    }
+    for (let i = 1; i < snakePos.length; i++) {
+      if (head.x === snakePos[i].x && head.y === snakePos[i].y) {
+        gameIsOver();
+      }
     }
   };
-  checkCollision();
+
+  const gameIsOver = () => {
+    setGameIsOver(true);
+    setStart(false);
+    setSnakePos([{ x: 10, y: 10 }]);
+    setGameScores(0);
+  };
+
+  const restartGame = () => {
+    setFood(generateFood());
+    setStart(true);
+    setGameIsOver(false);
+    clearInterval(gameInterval.current);
+    setGameSpeedDelay(200);
+  };
 
   return (
     <>
       <S.Container>
         <S.Scores>
-          <S.Score id="scores">000</S.Score>
+          <S.Score id="scores">
+            {gameScores >= 10 || gameScores >= 100
+              ? "0" + gameScores
+              : "00" + gameScores}
+          </S.Score>
           {/* <S.HighScore id="highScores">000</S.HighScore> */}
         </S.Scores>
         <S.GameBorderExternal>
@@ -166,7 +204,8 @@ const Main = () => {
           </S.GameBorderInternal>
         </S.GameBorderExternal>
       </S.Container>
-      {!start && <StartScreen />}
+      {!start && !gameOver && <StartScreen />}
+      {!start && gameOver && <GameOverScreen />}
     </>
   );
 };
