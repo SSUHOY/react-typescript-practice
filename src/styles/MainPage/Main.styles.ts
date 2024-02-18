@@ -10,7 +10,33 @@ export const Scores = styled.div`
 export const Score = styled.h1`
   color: #b5bf93;
 `;
-export const HighScore = styled.h1``;
+export const HighScore = styled.h1`
+  color: #b5bf93;
+`;
+
+export const HighScoreAlert = styled.h1`
+  text-transform: uppercase;
+  bottom: 460px;
+  left: 156.5px;
+  position: relative;
+
+    animation: blink-animation 1.9s infinite;
+ 
+
+  @keyframes blink-animation {
+    0% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0;
+    }
+
+    100% {
+      opacity: 1;
+    }
+  }
+`;
 
 export const GameBorderExternal = styled.div`
   border: #595f43 solid 10px;

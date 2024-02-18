@@ -3,14 +3,21 @@ import * as S from "../../styles/mainPage/Main.styles";
 import { ISnake } from "../../interfaces";
 import StartScreen from "../../components/startScreen/StartScreen";
 import GameOverScreen from "../../components/gameOver/GameOverScreen";
+import { useDispatch, useSelector } from "react-redux";
+import { setHighScore } from "../../store/actions/creators/game";
+import { highScoreSelector } from "../../store/selectors/game";
+import ScorePanel from "../../components/scorePanel/ScorePanel";
 
 const Main = () => {
-  const [start, setStart] = useState(false);
+  const dispatch = useDispatch();
+  const lastHighScores = useSelector(highScoreSelector);
 
+  const [start, setStart] = useState(false);
   const [gameOver, setGameIsOver] = useState(false);
   const [direction, setDirection] = useState("right");
   const [gameSpeedDelay, setGameSpeedDelay] = useState(200);
   const [gameScores, setGameScores] = useState(0);
+  const [newHighScoreMessage, setNewHighScoreMessage] = useState(false);
 
   // Define game variables
   let gameInterval = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -114,7 +121,7 @@ const Main = () => {
   // Detect keydown function for start and handle snake moving direction
   useEffect(() => {
     window.addEventListener("keydown", detectKeyDown, true);
-  }, []);
+  });
 
   const detectKeyDown = (event: KeyboardEvent) => {
     if (
@@ -125,6 +132,7 @@ const Main = () => {
     }
     if ((!start && event.key === " ") || (!start && event.code === "Space")) {
       setStart(true);
+      setNewHighScoreMessage(false);
     } else {
       switch (event.key) {
         case "ArrowUp":
@@ -175,6 +183,11 @@ const Main = () => {
     setStart(false);
     setSnakePos([{ x: 10, y: 10 }]);
     setGameScores(0);
+
+    if (gameScores > lastHighScores) {
+      dispatch(setHighScore(gameScores));
+      setNewHighScoreMessage(true);
+    }
   };
 
   const restartGame = () => {
@@ -188,14 +201,7 @@ const Main = () => {
   return (
     <>
       <S.Container>
-        <S.Scores>
-          <S.Score id="scores">
-            {gameScores >= 10 || gameScores >= 100
-              ? "0" + gameScores
-              : "00" + gameScores}
-          </S.Score>
-          {/* <S.HighScore id="highScores">000</S.HighScore> */}
-        </S.Scores>
+        <ScorePanel gameScores={gameScores} lastHighScores={lastHighScores} />
         <S.GameBorderExternal>
           <S.GameBorderInternal>
             <S.GameBorderInsideInternal>
@@ -205,7 +211,12 @@ const Main = () => {
         </S.GameBorderExternal>
       </S.Container>
       {!start && !gameOver && <StartScreen />}
-      {!start && gameOver && <GameOverScreen />}
+      {!start && gameOver && (
+        <GameOverScreen
+          newHighScoreMessage={newHighScoreMessage}
+          lastHighScores={lastHighScores}
+        />
+      )}
     </>
   );
 };

@@ -12,10 +12,12 @@ export interface ICreateGameElement {
   className: HTMLElement;
 }
 
-
-
-// declare global {
-// //   interface WindowEventMap {
-// //     keydown: KeyboardEvent<HTMLInputElement>
-// //   }
-// // }
+export interface IGameInitModel {
+  highScores: number;
+}
+export interface IGameAction {
+  type: string;
+  payload: {
+    highScores: number;
+  };
+}
